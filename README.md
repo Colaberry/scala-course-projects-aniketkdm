@@ -1,5 +1,5 @@
 Aniket Kadam
-Include a brief bio/introduction about you.
+I am grad CS student at WPI. My area of interest are Data Engineering and Data Science. With my MS studies, I have focused majorly on Big Data and Data Science aspects. I have done an internship as a Data Scientist at Kronos over Summer 2016. I have previous experience of about 5 years as a Business Intelligence Software developer, where I used Informatica, SQL, PL-SQL and Shell Scripting.
 
 ## Skill Profile
 Share your skill profile with a rating to your best of knowledge and understanding. Ratings begin from 1 (don't know much) and go up to 10 (expert).
