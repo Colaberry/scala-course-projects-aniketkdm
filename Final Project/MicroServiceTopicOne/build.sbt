@@ -12,7 +12,10 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "log4j-over-slf4j" % "1.7.12",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
-  "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-  "net.manub" %% "scalatest-embedded-kafka" % "0.7.1"
-    exclude("log4j", "log4j")
+  "com.typesafe.akka" %% "akka-stream" % akkaVersion
 )
+
+/*
+"net.manub" %% "scalatest-embedded-kafka" % "0.7.1"
+   exclude("log4j", "log4j")
+ */

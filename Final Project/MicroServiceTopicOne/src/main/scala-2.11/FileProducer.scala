@@ -30,9 +30,10 @@ class FileProducer(implicit mat: Materializer) extends Actor with ActorLogging {
     case Run => {
       val filename = "C:/Colaberry Scala Workspace/scala-course-projects-aniketkdm/Final Project/DataSet/1000-genomes%2Fother%2Fsample_info%2Fsample_info.csv"
 
-      val lines = fromFile(filename).getLines().drop(3490)
+      val lines = fromFile(filename).getLines()//.drop(3490)
 
-      val ticks = Source.tick(Duration.Zero, 1.seconds, Unit).map(_ => lines.next())
+
+      val ticks = Source.tick(Duration.Zero, 0.25.seconds, Unit).map(_ => lines.next())
 
       val producerSettings = ProducerSettings(context.system, new ByteArraySerializer, new StringSerializer)
         .withBootstrapServers("localhost:9092")

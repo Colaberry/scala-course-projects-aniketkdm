@@ -3,4 +3,5 @@
   */
 object TopicDefinition {
   val TOPIC = "topic1"
+  val TOPIC2 = "topic2"
 }

@@ -1,8 +1,14 @@
 import akka.actor.{Actor, ActorLogging}
 import akka.kafka.ConsumerMessage.{CommittableMessage, CommittableOffsetBatch}
+import akka.kafka.ProducerSettings
 import akka.kafka.scaladsl.Consumer.Control
+import akka.kafka.scaladsl.Producer
 import akka.stream.Materializer
+import akka.stream.javadsl.Source
 import akka.stream.scaladsl.{Keep, Sink}
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.serialization.{ByteArraySerializer, StringSerializer}
+import org.apache.kafka.clients.producer.ProducerRecord
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -22,6 +28,11 @@ class MyKafkaConsumer(implicit mat: Materializer) extends Actor with ActorLoggin
 
   import MyKafkaConsumer._
 
+  val producerSettings2 = ProducerSettings(context.system, new ByteArraySerializer, new StringSerializer)
+    .withBootstrapServers("localhost:9092")
+
+  val kafkaSink = Producer.plainSink(producerSettings2)
+
   override def preStart(): Unit = {
     super.preStart()
     self ! Start
@@ -32,20 +43,30 @@ class MyKafkaConsumer(implicit mat: Materializer) extends Actor with ActorLoggin
       log.info("Initializing my Kafka consumer")
       val (control, future) = FileProducerSource.create("MyKafkaConsumer")(context.system)
         .mapAsync(2)(processMessage)
-        .map(_.committableOffset)
+        /*.map(_.committableOffset)
         .groupedWithin(10, 15 seconds)
         .map(group => group.foldLeft(CommittableOffsetBatch.empty) { (batch, elem) => batch.updated(elem) })
-        .mapAsync(1)(_.commitScaladsl())
-        .toMat(Sink.ignore)(Keep.both)
+        .mapAsync(1)(_.commitScaladsl())*/
+        .toMat(kafkaSink)(Keep.both)
         .run()
+        //.toMat(kafkaSink)(Keep.both)
+        //.runWith(kafkaSink)
 
       //context.stop(self)
   }
 
-  private def processMessage(msg: Message): Future[Message] = {
+  private def processMessage(msg: Message): Future[ProducerRecord[Array[Byte], String]] = {
     println(s"*************************: ${msg.record.value()}")
-    Future.successful(msg)
+    var msg2 = new ProducerRecord[Array[Byte], String](TopicDefinition.TOPIC2, msg.record.value().toLowerCase)
+    Future.successful(msg2)
   }
+
+  /*private def processMessage2(msg: Message): Future[Message] = {
+    val str = s"*************************: ${msg.record.value()}"
+    println(s"*************************: ${msg.record.value()}")
+    //Future.successful(msg)
+    Future.successful(new MyKafkaConsumer[Array[Byte], String](TopicDefinition.TOPIC, str))
+  }*/
 }
 /*      context.become(running(control))
 

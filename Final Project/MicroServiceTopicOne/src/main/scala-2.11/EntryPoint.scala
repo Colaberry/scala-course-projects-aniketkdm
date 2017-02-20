@@ -1,10 +1,10 @@
 //import javax.inject.{ Inject, Singleton }
 
+//import akka._
 import akka.actor.{ActorSystem, Props}
-import akka.actor._
+//import akka.actor._
 import akka.stream.ActorMaterializer
 import com.typesafe.scalalogging.LazyLogging
-import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
 //import play.api.inject.ApplicationLifecycle
 import scala.concurrent.Future
 //import org.slf4j.LoggerFactory.
@@ -16,8 +16,8 @@ object EntryPoint extends App{
   val system = ActorSystem("SimpleSystem")
 
   println("Starting embedded Kafka")
-  implicit val embeddedKafkaConfig = EmbeddedKafkaConfig(9092, 2181)
-  EmbeddedKafka.start()
+  //implicit val embeddedKafkaConfig = EmbeddedKafkaConfig(9092, 2181)
+  //EmbeddedKafka.start()
   println("Embedded Kafka ready")
   implicit val materializer = ActorMaterializer.create(system)
 
@@ -27,6 +27,8 @@ object EntryPoint extends App{
 
   val consumer = system.actorOf(Props(new MyKafkaConsumer))
 
+  //akka.Main.main(Array(writer))
+  
   /*println("Shutting down application...")
   writer ! FileProducer.Stop
   consumer ! MyKafkaConsumer.Stop*/
