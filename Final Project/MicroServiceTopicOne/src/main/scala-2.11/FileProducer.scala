@@ -1,4 +1,6 @@
 import FileProducer.{Run, Stop}
+import akka.Done
+import akka.actor.Status.Success
 import akka.actor.{Actor, ActorLogging, Cancellable}
 import akka.kafka.ProducerSettings
 import akka.kafka.scaladsl.Producer
@@ -9,6 +11,7 @@ import org.apache.kafka.common.serialization.{ByteArraySerializer, StringSeriali
 
 import scala.io.Source._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.concurrent.duration.{Duration, _}
 
 /**
@@ -32,8 +35,7 @@ class FileProducer(implicit mat: Materializer) extends Actor with ActorLogging {
 
       val lines = fromFile(filename).getLines()//.drop(3490)
 
-
-      val ticks = Source.tick(Duration.Zero, 0.25.seconds, Unit).map(_ => lines.next())
+      val ticks = Source.tick(Duration.Zero, 1.milliseconds, Unit).map(_ => lines.next())
 
       val producerSettings = ProducerSettings(context.system, new ByteArraySerializer, new StringSerializer)
         .withBootstrapServers("localhost:9092")
@@ -42,16 +44,27 @@ class FileProducer(implicit mat: Materializer) extends Actor with ActorLogging {
 
       val kafkaSink = Producer.plainSink(producerSettings)
 
-      val (control, future) = ticks
+      val (control, future: Future[Done]) = ticks
         .map(new ProducerRecord[Array[Byte], String](TopicDefinition.TOPIC, _))
         .toMat(kafkaSink)(Keep.both)
         .run()
 
+      future.onComplete({
+        success =>
+          context.stop(self)
+          Thread.sleep(2000)
+          context.system.terminate()
+      })
+
+
       future.onFailure {
         case ex =>
-          println("*********************Stopping********************")
+          println("*********************Stopping********************", ex)
           context.stop(self)
-      }
+          //println("Terminating after exception")
+          //Thread.sleep(10000)
+          context.system.terminate()
+    }
     }
   }
 }

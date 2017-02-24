@@ -15,10 +15,10 @@ import scala.concurrent.Future
 object EntryPoint extends App{
   val system = ActorSystem("SimpleSystem")
 
-  println("Starting embedded Kafka")
+  //println("Starting embedded Kafka")
   //implicit val embeddedKafkaConfig = EmbeddedKafkaConfig(9092, 2181)
   //EmbeddedKafka.start()
-  println("Embedded Kafka ready")
+  //println("Embedded Kafka ready")
   implicit val materializer = ActorMaterializer.create(system)
 
   val writer = system.actorOf(Props(new FileProducer))
