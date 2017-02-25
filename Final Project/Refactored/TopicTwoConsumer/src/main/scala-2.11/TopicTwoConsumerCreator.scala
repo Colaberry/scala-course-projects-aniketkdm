@@ -13,7 +13,8 @@ object TopicTwoConsumerCreator {
     val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new StringDeserializer)
       .withBootstrapServers("localhost:9092")
       .withGroupId(groupId)
-      .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+      //.withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+      .withProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true") // to commit the offsets
 
     Consumer.committableSource(consumerSettings, Subscriptions.topics(TopicDefinition.TOPIC2))
   }

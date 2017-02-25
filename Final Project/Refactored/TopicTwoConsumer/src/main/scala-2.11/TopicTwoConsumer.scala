@@ -4,14 +4,13 @@ import akka.http.scaladsl.model.HttpMethods.POST
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpRequest, HttpResponse}
 import akka.kafka.ConsumerMessage.{CommittableMessage, CommittableOffsetBatch}
 import akka.stream.Materializer
-
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.util.ByteString
+import com.typesafe.config.ConfigFactory
 import net.liftweb.json._
 import net.liftweb.json.Serialization.write
 
 import scala.concurrent.Future
-
 import scala.language.postfixOps
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -30,6 +29,7 @@ case class JsonCustomFormat( Sample: String, Family_ID: String,	Population: Stri
 class TopicTwoConsumer(implicit mat: Materializer) extends Actor with ActorLogging {
 
   import TopicTwoConsumer._
+  val config = ConfigFactory.load()
 
   override def preStart(): Unit = {
     super.preStart()
@@ -60,14 +60,14 @@ class TopicTwoConsumer(implicit mat: Materializer) extends Actor with ActorLoggi
     implicit val system = ActorSystem("SimpleSystem")
 
     val ipApiConnectionFlow: Flow[HttpRequest, HttpResponse, Any] =
-      Http().outgoingConnection("192.168.99.100", 9200)
+      Http().outgoingConnection(config.getString("elasticSearch.url"), config.getInt("elasticSearch.port"))
 
     def ipApiRequest(request: HttpRequest): Future[HttpResponse] =
       akka.stream.scaladsl.Source.single(request).via(ipApiConnectionFlow).runWith(Sink.head)
 
     def fetchIpInfo(jsonObj: String): Unit = {
       println(jsonObj)
-      val request = HttpRequest(POST, uri = "/test/genomeAutoJson/", entity = HttpEntity(ContentTypes.`application/json`,ByteString(jsonObj)))
+      val request = HttpRequest(POST, uri = config.getString("apiUrl.path"), entity = HttpEntity(ContentTypes.`application/json`,ByteString(jsonObj)))
 
       println(request)
       ipApiRequest(request).onComplete(
