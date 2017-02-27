@@ -33,7 +33,8 @@ trait worker{
     akka.stream.scaladsl.Source.single(request).via(ipApiConnectionFlow).runWith(Sink.head)
 
   def fetchStudentInfo(id: String): Future[Either[String, String]] = {
-    ipApiRequest(RequestBuilding.Get(s"/test/genomeAutoJson/$id")).flatMap { response =>
+    //ipApiRequest(RequestBuilding.Get(s"/genomestage/id/$id")).flatMap { response =>
+    ipApiRequest(RequestBuilding.Get(config.getString("elasticSearch.path")+id)).flatMap { response =>
       response.status match {
         case OK => Future.successful(Right(response.entity.toString))
         case BadRequest => Future.successful(Left(s"$id: Incorrect ID Number"))

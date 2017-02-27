@@ -1,0 +1,19 @@
+version: '2'
+services:
+ file-producer:
+  image: file-producer:latest
+  container_name: file-producer
+  
+ kafka-consumer-for-topic-one:
+  image: kafka-consumer-for-topic-one:latest
+  container_name: kafka-consumer-for-topic-one
+  
+ topic-two-consumer:
+  image: topic-two-consumer:latest
+  container_name: topic-two-consumer
+  
+ api-main:
+  image: api-main:latest
+  container_name: api-main
+  ports:
+   - "8080:8080"

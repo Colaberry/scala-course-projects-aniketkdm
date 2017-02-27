@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/fileproducer.iml" filepath="$PROJECT_DIR$/.idea/modules/fileproducer.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/fileproducer-build.iml" filepath="$PROJECT_DIR$/.idea/modules/fileproducer-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/src.iml" filepath="$PROJECT_DIR$/.idea/modules/src.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/src-build.iml" filepath="$PROJECT_DIR$/.idea/modules/src-build.iml" />
     </modules>
   </component>
 </project>

@@ -33,7 +33,7 @@ class FileProducer(implicit mat: Materializer) extends Actor with ActorLogging {
   override def receive: Receive = {
     case Run => {
       val filename = config.getString("file.name")
-
+      //val filename = "testGenome.csv"
       //val filename = "C:/Colaberry Scala Workspace/scala-course-projects-aniketkdm/Final Project/DataSet/testGenome.csv"
 
       val lines = fromFile(filename).getLines().drop(1)//.drop(3490)

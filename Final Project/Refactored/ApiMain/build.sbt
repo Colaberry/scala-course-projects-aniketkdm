@@ -1,4 +1,5 @@
-name := "ApiMain"
+
+name := "api-main"
 
 version := "1.0"
 
@@ -26,4 +27,39 @@ libraryDependencies ++= Seq(
 
   "net.liftweb" %% "lift-json" % "2.6-M4"
 )
-    
+
+lazy val commonSettings = Seq(
+  organization := "MicroServices.ApiMai",
+  version := "1.0",
+  scalaVersion := "2.11.8"
+)
+
+lazy val root = (project in file(".")).
+  aggregate(src)
+
+/*lazy val FP = (project in file("KafkaConsumerForTopicOne")).
+  settings(commonSettings: _*)*/
+
+//  packageArchetype.java_server
+lazy val src =  {
+  import com.typesafe.sbt.packager.docker._
+
+  Project(
+    id = "src",
+    base = file("."),
+    settings = commonSettings ++ Seq(
+      mainClass in Compile := Some("ApiMain"),
+      dockerCommands := dockerCommands.value.filterNot {
+        // ExecCmd is a case class, and args is a varargs variable, so you need to bind it with @
+        case Cmd("USER", args@_*) => true
+        // dont filter the rest
+        case cmd => false
+      },
+      version in Docker := "latest",
+      dockerExposedPorts := Seq(8080),
+      maintainer in Docker := "aniketkdm@gmail.com",
+      dockerBaseImage := "java:8"
+    )
+  )//.dependsOn(FP)
+    .enablePlugins(JavaAppPackaging)
+}
