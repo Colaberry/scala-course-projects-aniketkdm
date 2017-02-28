@@ -1,5 +1,6 @@
 *.class
 *.log
+*.ipynb
 .idea
 # sbt specific
 .cache
