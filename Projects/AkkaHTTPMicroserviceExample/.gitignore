@@ -1,7 +1,6 @@
 *.class
 *.log
-*.ipynb
-.idea
+
 # sbt specific
 .cache
 .history
@@ -16,3 +15,6 @@ project/plugins/project/
 # Scala-IDE specific
 .scala_dependencies
 .worksheet
+
+# IntelliJ specific
+.idea
