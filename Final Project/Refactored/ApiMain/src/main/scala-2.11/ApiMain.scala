@@ -14,6 +14,14 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Sink}
 import com.typesafe.config.{Config, ConfigFactory}
 
+/**
+  * ApiMain opens a port for the user
+  * The port number is mentioned in the application.conf
+  * This is to demonstrate a mechanism where we provide a user with an interface
+  * Receive a request on the opened custom port
+  * Process the request (here we just fetch required information from elastic search)
+  * And provide the received feedback to the user
+  */
 
 import scala.concurrent.Future
 
@@ -26,12 +34,17 @@ trait worker{
   def config: Config
   val logger: LoggingAdapter
 
+  // sets up Http outgoing connection to connect to elastic search as per conf file
   val ipApiConnectionFlow: Flow[HttpRequest, HttpResponse, Any] =
     Http().outgoingConnection(config.getString("elasticSearch.url"), config.getInt("elasticSearch.port"))
 
+  // via flow setup to get the data from elastic search
   def ipApiRequest(request: HttpRequest): Future[HttpResponse] =
     akka.stream.scaladsl.Source.single(request).via(ipApiConnectionFlow).runWith(Sink.head)
 
+  /**
+    * this method fetches the information from the elastic search
+    */
   def fetchStudentInfo(id: String): Future[Either[String, String]] = {
     //ipApiRequest(RequestBuilding.Get(s"/genomestage/id/$id")).flatMap { response =>
     ipApiRequest(RequestBuilding.Get(config.getString("elasticSearch.path")+id)).flatMap { response =>
@@ -46,6 +59,14 @@ trait worker{
       }
     }
   }
+
+  /**
+    * request is received from "http://localhost:8080/id/{id}
+    * (because localhost and 8080 are mentioned in the conf file) This can be changed as per requirement
+    * The id number passed is given to fetchStudentInfo method
+    * which reads the data from elastic search configuration mentioned in application.conf
+    * and returns either corresponding data or the Badrequest error
+    */
 
   val routes = {
     logRequestResult("Http-Api-MicroService") {
@@ -63,11 +84,16 @@ trait worker{
     }
   }
 }
+
+/**
+  * Starting point
+  */
 object ApiMain extends App with worker {
 
   val config = ConfigFactory.load()
   val logger = Logging(system, getClass)
 
+  // binds the routes method with the api url and api port mentioned in the application.conf
   Http().bindAndHandle(routes, config.getString("api.url"), config.getInt("api.port"))
 
 }

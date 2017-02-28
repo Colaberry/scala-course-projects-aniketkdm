@@ -16,6 +16,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Created by anike_000 on 2/18/2017.
+  * Consumer to perform MicroService 3 operations
+  */
+
+/**
+  * This Object creates two message objects
   */
 object TopicTwoConsumer {
   type Message = CommittableMessage[Array[Byte], String]
@@ -23,6 +28,15 @@ object TopicTwoConsumer {
   case object Stop
 }
 
+/**
+  * This is the class that is used to convert the messages read from topic two to Json String
+  * Data is written to elastic search in Json format
+  * @param Sample
+  * @param Family_ID
+  * @param Population
+  * @param Population_Description
+  * @param Gender
+  */
 case class JsonCustomFormat( Sample: String, Family_ID: String,	Population: String,
                         Population_Description: String,  Gender: String)
 
@@ -31,6 +45,10 @@ class TopicTwoConsumer(implicit mat: Materializer) extends Actor with ActorLoggi
   import TopicTwoConsumer._
   val config = ConfigFactory.load()
 
+  /**
+    * start message is send to self in preStart
+    * The start message processing is where the data is written to elastic search
+    */
   override def preStart(): Unit = {
     super.preStart()
     self ! Start
@@ -42,13 +60,14 @@ class TopicTwoConsumer(implicit mat: Materializer) extends Actor with ActorLoggi
     case Start =>
       log.info("Initializing Topic Two consumer")
       val (control, future) = TopicTwoConsumerCreator.create("TopicTwoConsumer")(context.system)
-          .mapAsync(1)(writeToElasticSearch)
-        .mapAsync(1)(processMessage)
+          .mapAsync(1)(writeToElasticSearch) // call to write to elastic search
+        .mapAsync(1)(processMessage) // just for logging
           .map(_.committableOffset)
-        .toMat(Sink.ignore)(Keep.both)
+        .toMat(Sink.ignore)(Keep.both) // sink ignore
         .run()
   }
 
+  // This is used just for logging purposes
   private def processMessage(msg: Message): Future[Message] = {
     cnt += 1
 
@@ -56,19 +75,30 @@ class TopicTwoConsumer(implicit mat: Materializer) extends Actor with ActorLoggi
     Future.successful(msg)
   }
 
+  /**
+    * This method uses the elastic search configuration mentioned in the application.conf
+    * creates and Http outgoing connection
+    * uses via flow to write to elastic search
+    */
   def writeToElasticSearch(msg: Message): Future[Message] ={
     implicit val system = ActorSystem("SimpleSystem")
 
+    // outgoing Http connection setup
     val ipApiConnectionFlow: Flow[HttpRequest, HttpResponse, Any] =
       Http().outgoingConnection(config.getString("elasticSearch.url"), config.getInt("elasticSearch.port"))
 
+    // via flow to write to elastic search
     def ipApiRequest(request: HttpRequest): Future[HttpResponse] =
       akka.stream.scaladsl.Source.single(request).via(ipApiConnectionFlow).runWith(Sink.head)
 
+    // method to post the Json string to elastic search
     def fetchIpInfo(jsonObj: String): Unit = {
       println(jsonObj)
+
+      // Posts to the elastic search url mentioned in the application.conf
       val request = HttpRequest(POST, uri = config.getString("apiUrl.path"), entity = HttpEntity(ContentTypes.`application/json`,ByteString(jsonObj)))
 
+      // for loogging reasons
       println(request)
       ipApiRequest(request).onComplete(
         status =>
@@ -76,8 +106,10 @@ class TopicTwoConsumer(implicit mat: Materializer) extends Actor with ActorLoggi
       )
     }
 
+    // conversion to Json String
     val jsonStr = processToJson(msg.record.value())
 
+    // Calling the fetchIpInfo method to write to the elastic search
     println("calling fetchIpInfo")
     fetchIpInfo(jsonStr)
     println("call done")
@@ -85,6 +117,10 @@ class TopicTwoConsumer(implicit mat: Materializer) extends Actor with ActorLoggi
     Future.successful(msg)
   }
 
+  /**
+    * This method uses the liftweb json package to convert the messages
+    * using JsonCustomFormat to Json String
+    */
   def processToJson(strMsg: String): String = {
     val msgArr = strMsg.split(",",6)
 

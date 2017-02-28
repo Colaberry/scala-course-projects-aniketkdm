@@ -17,6 +17,14 @@ import scala.language.postfixOps
 
 /**
   * Created by anike_000 on 2/18/2017.
+  * This consumer consumes the messages from Topic One.
+  * Processes the received messages (for now just converting to lowercase)
+  * And writes the processed messages to Topic2
+  */
+
+
+/**
+  * The Object creates two case object messages
   */
 object MyKafkaConsumerForTopicOne {
   type Message = CommittableMessage[Array[Byte], String]
@@ -33,6 +41,12 @@ class MyKafkaConsumerForTopicOne(implicit mat: Materializer) extends Actor with 
 
   val kafkaSink = Producer.plainSink(producerSettings2)
 
+  /**
+    * The preStart method sends the Start type message to itself
+    * To start the processing of messages
+    * And to load it to Topic2
+    */
+
   override def preStart(): Unit = {
     super.preStart()
     self ! Start
@@ -47,6 +61,11 @@ class MyKafkaConsumerForTopicOne(implicit mat: Materializer) extends Actor with 
         .run()
   }
 
+  /**
+    * processMessage Method takes in the received message
+    * performs the transformation (for now just converting to lowerCase)
+    * And returns ProducerRecord to be written in Topic2
+    */
   private def processMessage(msg: Message): Future[ProducerRecord[Array[Byte], String]] = {
     println(s"****MyKafkaConsumer*****: ${msg.record.value()}")
     var msg2 = new ProducerRecord[Array[Byte], String](TopicDefinition.TOPIC2, msg.record.value().toLowerCase)

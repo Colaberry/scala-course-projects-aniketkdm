@@ -7,6 +7,9 @@ import org.apache.kafka.common.serialization.{ByteArrayDeserializer, StringDeser
 
 /**
   * Created by anike_000 on 2/23/2017.
+  * consumer Config object
+  * specifies the topic to receive the messages from
+  * sets the offset commit/reset properties
   */
 object TopicTwoConsumerCreator {
   def create(groupId: String)(implicit system: ActorSystem): Source[ConsumerMessage.CommittableMessage[Array[Byte], String], Consumer.Control] = {

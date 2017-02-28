@@ -15,6 +15,13 @@ import scala.io.Source._
 
 /**
   * Created by anike_000 on 2/18/2017.
+  * This producer reads the data from the file mentioned in application.conf
+  * and writes it to the Kafka Stream as the first topic
+  * with the topic name TOPIC mentioned in TopicDefinition.scala
+  */
+
+/**
+  * The FileProducer Object creates two Messages in the form of case Objects
   */
 object FileProducer{
   case object Run
@@ -25,6 +32,10 @@ class FileProducer(implicit mat: Materializer) extends Actor with ActorLogging {
 
   val config = ConfigFactory.load()
 
+  /**
+    * preStart sends a Run message to itself to kickstart the MicroService mechanism
+    * Of Reading from a file and writing to the Kafka Stream
+    */
   override def preStart(): Unit = {
     super.preStart()
     self ! Run
